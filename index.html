@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>불조심 퀴즈게임 모음</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; min-height: 100vh; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Jua', 'Malgun Gothic', sans-serif;
+    background: radial-gradient(circle at top left, rgba(255,196,110,0.35) 0%, transparent 30%),
+                radial-gradient(circle at top right, rgba(255,140,170,0.35) 0%, transparent 32%),
+                linear-gradient(180deg, #ff8a65 0%, #ff5e62 45%, #d84343 100%);
+    color: #3b2a2a; padding: 24px 12px;
+  }
+  .hidden { display: none !important; }
+  .screen { width: 100%; display: flex; align-items: center; justify-content: center; }
+  .card {
+    background: #fffaf3; border: 5px solid #3b2a2a; border-radius: 28px;
+    box-shadow: 0 14px 0 rgba(59,42,42,0.25), 0 24px 40px rgba(0,0,0,0.25);
+    padding: 40px 46px; box-sizing: border-box; text-align: center;
+  }
+  .big-title { font-size: 2.4rem; text-align: center; color: #ffdd57;
+    -webkit-text-stroke: 5px #b23a2c; paint-order: stroke fill;
+    filter: drop-shadow(0 6px 0 rgba(0,0,0,0.2)); margin: 0 0 10px; }
+  .subtitle { text-align:center; font-size: 1.05rem; color:#7a5c3e; margin-bottom: 26px; }
+  .btn {
+    font-family: 'Jua', sans-serif; border: 4px solid #3b2a2a; border-radius: 9999px;
+    padding: 13px 34px; font-size: 1.15rem; cursor: pointer; color: #3b2a2a;
+    box-shadow: 0 6px 0 rgba(59,42,42,0.4); transition: all 0.15s ease;
+  }
+  .btn:hover { transform: translateY(-3px); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(59,42,42,0.4); }
+  .btn-primary { background: linear-gradient(180deg,#ffe08a,#ffb347); }
+  .btn-secondary { background: #ffffff; }
+
+  /* 회차 선택 화면 */
+  #select-screen .card { width: 640px; max-width: 94vw; }
+  .round-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:18px; margin-top: 12px; }
+  .round-box {
+    background: linear-gradient(160deg,#fff6e8,#ffe3c2); border:4px solid #3b2a2a; border-radius:20px;
+    padding: 22px 14px; text-align:center; cursor:pointer; box-shadow: 0 6px 0 rgba(59,42,42,0.35);
+    transition: all 0.15s ease; display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .round-box:hover { transform: translateY(-4px); border-color:#ff5e62; }
+  .round-box .r-num { font-size:1.8rem; color:#d84343; }
+  .round-box .r-name { font-size:0.92rem; color:#5a4230; line-height:1.3; }
+
+  #game-screen { width: 100%; }
+  .game-wrapper { width: 760px; max-width: 96vw; margin: 0 auto; }
+  .game-card {
+    background:#fffaf3; border:5px solid #3b2a2a; border-radius:28px;
+    box-shadow:0 14px 0 rgba(59,42,42,0.25), 0 24px 40px rgba(0,0,0,0.25); overflow:hidden;
+  }
+  .game-header {
+    background:#ffd9a0; border-bottom:4px solid #3b2a2a; padding:14px 22px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .info-pill { background:rgba(255,255,255,0.75); border:3px solid #3b2a2a; border-radius:14px; padding:6px 14px; font-size:0.95rem; }
+  .game-body { padding: 26px 30px 34px; }
+  .question-box {
+    background:#ffe3c2; border:4px solid #3b2a2a; border-radius:20px; padding:22px 24px; margin-bottom:20px;
+    font-size:1.18rem; text-align:center; line-height:1.55; color:#3b2a2a;
+  }
+  .choices-grid { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+  .choice-btn {
+    font-family: 'Jua', sans-serif; box-sizing:border-box; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    text-align:center; min-height: 64px; padding: 10px 14px; border-radius:16px; border:4px solid #3b2a2a;
+    background: linear-gradient(180deg,#fff3d6,#ffdd8a); font-size:1.02rem; color:#3b2a2a;
+    box-shadow: 0 6px 0 #d99a3e; transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .choice-btn:hover:not(:disabled) { transform: translateY(-2px); }
+  .choice-btn:disabled { cursor: default; }
+  .choice-btn.correct { background: linear-gradient(180deg,#b9f0b0,#7ed673); box-shadow: 0 6px 0 #4b9e42; }
+  .choice-btn.wrong { background: linear-gradient(180deg,#f5b3b3,#e97676); box-shadow: 0 6px 0 #b23a3a; }
+
+  .explain-box {
+    margin-top: 22px; background: #eaf7ea; border: 3px solid #4b9e42; border-radius: 18px; padding: 18px 22px;
+  }
+  .explain-title { color:#2e7d32; font-weight:bold; font-size:1.1rem; margin-bottom:8px; border-bottom: 2px solid #cfe8cf; padding-bottom:6px; }
+  #explain-answer { font-weight:bold; margin-bottom:8px; }
+  #explain-text { line-height:1.6; color:#333; margin-bottom: 16px; font-size: 0.98rem; }
+
+  #result-screen .card { min-width: 340px; width: 640px; max-width: 94vw; }
+  .result-title { font-size: 1.9rem; color:#d84343; margin:10px 0 20px; }
+  .result-stats { display:flex; gap:12px; width:100%; margin-bottom: 24px; }
+  .result-stats > div { flex:1; background:#ffe3c2; border:3px solid #3b2a2a; border-radius:14px; padding:14px 6px; }
+  .result-stats .label { font-size:0.82rem; color:#7a5c3e; }
+  .result-stats .value { font-size:1.25rem; color:#3b2a2a; margin-top: 4px; }
+  #wrong-wrap { text-align: left; width: 100%; margin-bottom: 20px; }
+  .wrong-title { font-weight: bold; color: #b23a2c; margin-bottom: 10px; text-align:center; }
+  #wrong-list { max-height: 260px; overflow-y: auto; background: #fff3ec; border: 3px solid #3b2a2a; border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; }
+  .wrong-item { padding: 8px 0; border-bottom: 1px dashed #e0c9b8; font-size: 0.92rem; line-height: 1.5; }
+  .wrong-item:last-child { border-bottom: none; }
+  .wrong-item .wq { font-weight: bold; margin-bottom: 3px; }
+  .wrong-item .wmine { color: #b23a3a; }
+  .wrong-item .wcorrect { color: #2e7d32; }
+  .result-btns { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+</style>
+</head>
+<body>
+
+<div id="start-screen" class="screen">
+  <div class="card">
+    <div class="big-title">🔥 불조심 퀴즈게임 🔥</div>
+    <div class="subtitle">「초등학생용 불조심 길라잡이」 기반<br>4지선다 퀴즈 · 회차를 골라 풀어보세요</div>
+    <button class="btn btn-primary" onclick="showSelectScreen()">시작하기</button>
+  </div>
+</div>
+
+<div id="select-screen" class="screen hidden">
+  <div class="card">
+    <div class="big-title" style="font-size:1.9rem;">회차를 선택하세요</div>
+    <div class="round-grid" id="round-grid"></div>
+  </div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <div class="game-wrapper">
+    <div class="game-card">
+      <div class="game-header">
+        <div class="info-pill" id="round-pill">1회</div>
+        <div class="info-pill">문제 <span id="q-index">1</span>/<span id="q-total">25</span></div>
+        <div class="info-pill">⏱ <span id="timer">00:00</span></div>
+      </div>
+      <div class="game-body">
+        <div class="question-box" id="question-box"></div>
+        <div class="choices-grid" id="choices-grid"></div>
+        <div class="explain-box hidden" id="explain-box">
+          <div class="explain-title">정답 및 해설</div>
+          <div id="explain-answer"></div>
+          <div id="explain-text"></div>
+          <div style="text-align:center;"><button class="btn btn-primary" id="next-btn" onclick="nextQuestion()">다음 문제</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="result-screen" class="screen hidden">
+  <div class="card">
+    <div style="font-size:2.6rem;">🏆</div>
+    <div class="result-title" id="result-title">퀴즈 완료!</div>
+    <div class="result-stats">
+      <div><div class="label">걸린 시간</div><div class="value" id="result-time">00:00</div></div>
+      <div><div class="label">마친 시간</div><div class="value" id="result-finish">-</div></div>
+    </div>
+    <div id="wrong-wrap" class="hidden">
+      <div class="wrong-title">틀린 문제 (<span id="wrong-count">0</span>개)</div>
+      <div id="wrong-list"></div>
+      <button class="btn btn-primary" id="retry-wrong-btn" onclick="retryWrong()">틀린 문제만 다시 풀기</button>
+    </div>
+    <div class="result-btns">
+      <button class="btn btn-secondary" onclick="restartRound()">이 회차 처음부터 다시</button>
+      <button class="btn btn-secondary" onclick="backToSelect()">다른 회차 선택하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ROUNDS = {
+  "1": { label: "1회", data: [
+{q:"불이 일어나기 위해 반드시 필요한 세 가지 요소가 아닌 것은?", c:["불꽃(점화원)","산소","이산화탄소","가연물(연료)"], a:2, e:"불의 3요소는 불꽃(점화원)·산소·가연물(연료)이다. 이산화탄소는 오히려 산소를 차단하는 질식소화에 쓰이는 기체다."},
+{q:"다음 중 '가연물'에 대한 설명으로 올바른 것은?", c:["불을 붙일 수 있는 모든 것","불에 타기 쉬운 물질이나 물건","불이 난 뒤 남는 재","물을 뿌려 불을 끄는 재료"], a:1, e:"가연물이란 불에 타기 쉬운 물질이나 물건을 말한다. '불을 붙일 수 있는 모든 것'은 점화원의 정의다."},
+{q:"최근 5년간(2021~2025년) 화재원인 통계에서 가장 높은 비율을 차지하는 원인은?", c:["전기적요인","부주의","기계적요인","방화"], a:1, e:"소방청 국가화재정보센터 통계(2021~2025)에 따르면 부주의로 인한 화재가 46.5%로 가장 많다."},
+{q:"최근 5년간 화재원인 통계에서 두 번째로 높은 비율을 차지하는 원인은?", c:["부주의","전기적요인","미상","화학적요인"], a:1, e:"전기적요인이 27.0%로 2위를 차지한다. 뒤이어 미상(8.5%), 기계적요인(10.1%) 순이다."},
+{q:"하나의 콘센트에 여러 전기기구를 꽂아 적정 용량을 초과하는 현상을 무엇이라 하는가?", c:["누전","과부하","정전","감전"], a:1, e:"과부하는 하나의 콘센트에 여러 전기기구를 꽂아 적정용량을 초과하는 현상으로, 지나친 열이 발생해 불이 날 수 있다."},
+{q:"전기가 전선이나 전기기구에서 새어 나가는 현상을 무엇이라 하는가?", c:["누전","과부하","과열","스파크"], a:0, e:"누전은 전기가 전선이나 전기기구 등에서 새는 것으로, 수도관에서 물이 새는 것에 비유할 수 있다. 감전되거나 불이 날 수 있다."},
+{q:"전기기구를 살 때 반드시 확인해야 하는 국가 인증 표시는?", c:["KC마크","친환경마크","품질보증서","제조번호"], a:0, e:"전기기구는 ㉿ 마크나 'KC' 자가 표시된 국가 인증 제품을 사용해야 한다. 인증받지 않은 제품은 불이 날 위험이 있다."},
+{q:"누전차단기는 얼마나 자주 점검해야 하는가?", c:["매주 1회","매월 1회 이상","매년 1회","고장났을 때만"], a:1, e:"누전차단기는 매월 1회 이상 정기적으로 점검해야 한다. 시험용 버튼을 눌러 스위치가 아래로 떨어지는지 확인한다."},
+{q:"감전된 사람을 발견했을 때 가장 먼저 해야 할 일은?", c:["직접 손으로 잡아당겨 떼어놓는다","어른들께 알려 도움을 청한다","물을 뿌려 열을 식힌다","무시하고 지나간다"], a:1, e:"감전된 사람을 발견하면 직접 만지지 말고 먼저 어른들께 알려 도움을 청해야 한다."},
+{q:"감전된 사람을 전기로부터 떼어놓을 때 안전하게 사용할 수 있는 도구는?", c:["젖은 수건","고무장갑이나 나무 막대","금속 막대","맨손"], a:1, e:"전기 차단이 어려우면 고무장갑이나 나무 막대처럼 전기가 통하지 않는 도구를 이용해 사람을 떼어 놓아야 한다."},
+{q:"가정에서 사용하는 가스연료 중 '메탄가스'가 주성분인 것은?", c:["액화석유가스(LPG)","액화천연가스(LNG)","부탄가스","프로판가스"], a:1, e:"액화천연가스(LNG)의 주성분은 메탄가스이며, 도시가스회사가 배관으로 공급하는 도시가스는 주로 LNG이다."},
+{q:"공기보다 가벼운 액화천연가스(LNG) 누설경보기는 어디에 설치해야 하는가?", c:["바닥에서 30cm 이내","천장에서 30cm 이내","창문 옆","아무 곳이나"], a:1, e:"LNG는 공기보다 가벼우므로 가스가 위로 모이기 때문에 천장에서 30cm 이내에 경보기를 설치해야 한다."},
+{q:"공기보다 무거운 액화석유가스(LPG) 누설경보기는 어디에 설치해야 하는가?", c:["천장에서 30cm 이내","바닥에서 30cm 이내","창문 위","문 앞"], a:1, e:"LPG는 공기보다 무거워 아래로 가라앉으므로 바닥에서 30cm 이내에 경보기를 설치해야 한다."},
+{q:"가스가 새는 것을 발견했을 때 절대 하면 안 되는 행동은?", c:["창문과 출입문을 연다","점화스위치와 밸브를 잠근다","전등 스위치를 켜거나 끈다","어른들께 알린다"], a:2, e:"전등, 컴퓨터 등 전기기구의 스위치를 켜거나 끄면 전기불꽃이 생겨 새어나온 가스가 폭발할 위험이 있으므로 절대 만지면 안 된다."},
+{q:"유류화재의 특징으로 옳지 않은 것은?", c:["불이 붙기 쉽다","물보다 가벼워 물 위에 뜬다","물을 뿌리면 쉽게 꺼진다","유증기는 공기보다 무겁다"], a:2, e:"유류화재는 물을 뿌려도 불이 잘 꺼지지 않으며, 오히려 기름이 물 위에 떠서 불이 더 번질 수 있다. 소화기를 사용해야 한다."},
+{q:"유류화재가 발생했을 때 올바른 대처법은?", c:["물을 뿌린다","소화기를 사용한다","부채질로 끈다","그대로 둔다"], a:1, e:"유류화재는 물로는 끄기 어려우므로 소화기를 사용해야 한다."},
+{q:"불장난은 주로 몇 세 어린이들 사이에서 많이 일어난다고 하는가?", c:["1~2세","3~7세","10~12세","13세 이상"], a:1, e:"불장난은 3~7세 사이의 어린이들이 일으키는 경우가 많으므로, 어린 동생이 불장난을 하려 하면 엄하게 타일러야 한다."},
+{q:"'방화'에 대한 설명으로 옳지 않은 것은?", c:["나쁜 마음을 먹고 일부러 불을 지르는 것이다","방화범만 처벌받고 도와준 사람은 처벌받지 않는다","보험금을 노리고 불을 지르기도 한다","방화를 준비만 해도 처벌받는다"], a:1, e:"방화범뿐 아니라 방화를 실패한 사람, 준비한 사람, 방화범을 도와준 사람까지 모두 법에 의해 처벌받는다."},
+{q:"산불이 우리나라에서 가장 많이 발생하는 계절은?", c:["봄","여름","가을","겨울"], a:0, e:"봄철에는 습도 50% 미만인 날이 다른 계절보다 많아 산불의 약 60% 정도가 봄에 발생한다."},
+{q:"산불이 거의 발생하지 않는 습도 조건은?", c:["40% 이하","50% 내외","60% 이상","습도와 관계없음"], a:2, e:"습도가 60% 이상이면 산불이 거의 발생하지 않고, 40% 이하이면 급속히 연소할 위험이 크다."},
+{q:"산불에 영향을 미치는 3가지 요소가 아닌 것은?", c:["연료","지형","기상조건","인구밀도"], a:3, e:"산불에 영향을 미치는 3요소는 연료, 지형, 기상조건(강우량·바람·습도·온도)이다."},
+{q:"불을 끄는 방법 중, 산소를 차단하여 불을 끄는 방법은?", c:["냉각소화","제거소화","질식소화","냉동소화"], a:2, e:"질식소화는 모래나 담요 등으로 불타는 물체를 덮어 산소를 차단해서 불을 끄는 방법이다."},
+{q:"공기 중 산소 농도가 몇 % 이하가 되면 불꽃이 꺼지는가?", c:["10% 이하","15% 이하","21% 이하","25% 이하"], a:1, e:"공기 중에는 보통 21%의 산소가 있으며, 산소 농도가 15% 이하가 되면 불꽃은 꺼진다."},
+{q:"불이 났을 때 가장 먼저 해야 할 행동으로 알맞은 것은?", c:["값비싼 물건부터 챙긴다","\"불이야!\"라고 큰 소리로 외친다","조용히 혼자 대피한다","사진을 찍어 SNS에 올린다"], a:1, e:"불이 나면 제일 먼저 주위에 알려야 하므로 \"불이야!\"라고 큰 소리로 외쳐야 한다."},
+{q:"옷에 불이 붙었을 때 지켜야 할 3단계 행동요령(STOP-DROP-ROLL)의 순서로 옳은 것은?", c:["구르기 → 엎드리기 → 멈추기","멈추기 → 엎드리기 → 구르기","엎드리기 → 멈추기 → 구르기","멈추기 → 구르기 → 엎드리기"], a:1, e:"멈추세요(STOP) → 엎드리세요(DROP) → 구르세요(ROLL) 순서로, 손으로 얼굴을 가리고 좌우로 굴러 불을 꺼야 한다."}
+  ]},
+  "2": { label: "2회", data: [
+{q:"대피할 때 절대 이용하면 안 되는 이동 수단은?", c:["계단","비상구","엘리베이터","발코니"], a:2, e:"불이 나서 전기가 꺼지면 엘리베이터 안에 갇힐 위험이 있으므로 계단이나 비상구를 이용해야 한다."},
+{q:"연기 속을 대피할 때 올바른 자세는?", c:["서서 빠르게 걷는다","최대한 자세를 낮춘다","뛰어서 이동한다","위를 보며 걷는다"], a:1, e:"연기는 위로 올라가고 찬 공기는 아래에 있으므로, 자세를 최대한 낮추어야 숨쉬기가 편해진다."},
+{q:"실내에 갇혔을 때, 다른 곳에서 불이 난 경우 문을 열기 전에 먼저 확인해야 할 것은?", c:["창문 밖 상황","문 손잡이가 뜨거운지","연기 색깔","시계"], a:1, e:"문 손잡이나 문을 손으로 살짝 만져보아 뜨거우면 문을 열지 말아야 한다. 불길이 실내로 들어올 수 있기 때문이다."},
+{q:"119에 화재 신고를 할 때 말하지 않아도 되는 것은?", c:["정확한 주소","화재 원인(아는 경우)","가까운 큰 건물 이름","자신이 좋아하는 음식"], a:3, e:"119 신고 시에는 정확한 주소, 가까운 큰 건물 이름, 알고 있다면 화재 원인을 또박또박 말해야 한다."},
+{q:"119 장난전화를 하면 안 되는 이유로 옳지 않은 것은?", c:["법에 의해 처벌받을 수 있다","실제 화재현장 출동이 늦어질 수 있다","진짜 신고자가 오해받을 수 있다","소방관들이 심심하지 않아서 좋다"], a:3, e:"장난전화는 법에 의해 처벌받는 중대한 범죄이며, 실제 화재 출동을 늦추고 진짜 신고자까지 오해받게 만든다."},
+{q:"마른 수건 4겹을 겹쳐서 코와 입을 막으면 연기를 약 몇 % 제거할 수 있는가?", c:["10%","40%","70%","100%"], a:1, e:"마른 수건도 4겹이면 연기를 약 40% 정도 제거할 수 있고, 8겹이면 자극성가스도 제거할 수 있다."},
+{q:"물에 젖은 수건이나 마른 수건으로도 제거할 수 없는 기체는?", c:["암모니아","염화수소가스","일산화탄소","수증기"], a:2, e:"일산화탄소는 물에 젖은 수건이나 마른 수건 어느 것으로도 제거할 수 없는 기체이다."},
+{q:"화상을 입었을 때 응급처치로 올바른 것은?", c:["얼음으로 문지른다","흐르는 찬물로 20분 이상 식힌다","약솜으로 덮는다","소주나 된장을 바른다"], a:1, e:"화상을 입으면 흐르는 찬물로 20분 이상 식힌 뒤 병원 치료를 받아야 한다. 수돗물을 세게 틀면 안 된다."},
+{q:"화상 부위에 얼음을 사용하면 안 되는 이유는?", c:["피부의 혈액순환에 지장을 줄 수 있어서","통증이 심해져서","흉터가 예뻐져서","냄새가 나서"], a:0, e:"얼음은 피부의 혈액순환에 지장을 줄 수 있으므로 화상에 사용하면 안 된다."},
+{q:"피부의 표피층만 손상되어 붉게 변하고 5~10일 후 흉터 없이 낫는 화상 단계는?", c:["1도 화상","2도 화상","3도 화상","4도 화상"], a:0, e:"1도 화상은 표피층만 손상되어 붉게 변하고 따끔거리며, 5~10일 후 흉터 없이 낫는다."},
+{q:"진피까지 손상되어 물집이 생기고 2주~1개월 정도 치료가 필요한 화상 단계는?", c:["1도 화상","2도 화상","3도 화상","화상이 아님"], a:1, e:"2도 화상은 진피까지 상하여 물집이 생기고 매우 아프며, 전문의 치료가 필요하고 2주~1개월 정도 지나야 낫는다."},
+{q:"심폐소생술에서 가슴압박의 올바른 깊이와 속도는?", c:["약 2cm, 분당 60회","약 5cm, 분당 100~120회","약 10cm, 분당 200회","깊이는 상관없이 최대한 빠르게"], a:1, e:"가슴압박은 깊이 약 5cm, 속도 분당 100~120회가 적당하다."},
+{q:"심폐소생술에서 가슴압박과 인공호흡의 비율은?", c:["15:1","30:2","5:1","10:2"], a:1, e:"가슴압박 30회와 인공호흡 2회를 반복한다. 인공호흡이 어렵다면 가슴압박만 반복해도 된다."},
+{q:"심정지 발생 후 몇 분 이내에 조치하지 않으면 뇌손상이 발생하는가?", c:["1~2분","4~5분","10~15분","30분"], a:1, e:"심정지 발생 후 4~5분 내에 아무 조치가 없으면 뇌손상이 일어나므로 초기 대응이 매우 중요하다."},
+{q:"자동심장충격기(AED) 패드를 부착하는 위치로 옳은 것은?", c:["양쪽 발바닥","오른쪽 쇄골 아래와 왼쪽 겨드랑이선","이마와 뒷목","양쪽 손바닥"], a:1, e:"패드 1은 오른쪽 쇄골 아래, 패드 2는 왼쪽 젖꼭지 아래의 중간 겨드랑이선에 부착한다."},
+{q:"압사 사고를 예방하기 위한 행동으로 옳지 않은 것은?", c:["앞사람과 간격을 유지한다","먼저 가려고 뛰지 않는다","답답하면 앞사람을 밀친다","가방을 앞으로 멘다"], a:2, e:"답답하더라도 앞사람을 밀지 않고 질서 있게 행동해야 압사 사고를 예방할 수 있다."},
+{q:"사람이 급하게 한쪽으로 몰리며 발생하는 것을 무엇이라 하는가?", c:["군중 압착","군중 쏠림","군중 정체","군중 이동"], a:1, e:"군중 쏠림은 사람이 급하게 한쪽으로 몰리며 발생하고, 군중 압착은 사방이 꽉 막힌 공간에서 발생한다."},
+{q:"소방시설 중 불이 난 것을 자동으로 감지해 수신기로 신호를 보내는 것은?", c:["발신기","감지기","수신기","유도등"], a:1, e:"감지기는 천장에 설치되어 불이 난 것을 자동으로 감지하고 이 정보를 수신기로 보내는 기구이다."},
+{q:"사람이 직접 눌러야 화재를 알릴 수 있는 소방시설은?", c:["감지기","발신기","스프링클러","완강기"], a:1, e:"감지기는 스스로 벨을 울려 알리지만, 발신기는 사람이 꼭 눌러 주어야 화재를 알릴 수 있다."},
+{q:"단독경보형감지기에 대한 설명으로 옳지 않은 것은?", c:["전선 연결 없이 건전지로 작동한다","\"삐삐~\" 소리로 위험을 알린다","아파트와 기숙사도 설치 의무 대상이다","어른의 도움을 받아 설치한다"], a:2, e:"주택용 소방시설 의무 설치 대상은 아파트 및 기숙사를 제외한 주택이다."},
+{q:"식용유 등 동식물유를 사용하는 조리기구에서 일어난 화재는 무슨 급 화재인가?", c:["A급","B급","C급","K급"], a:3, e:"K급 화재는 주방, 조리실에서 식용유 같은 동식물유를 다루는 조리기구에서 일어난 화재이다."},
+{q:"전기용품에서 일어난 화재는 몇 급 화재로 분류되는가?", c:["A급","B급","C급","K급"], a:2, e:"C급 화재는 텔레비전, 변압기 등 전기용품을 사용하는 도중 전기로 인해 일어나는 불이다."},
+{q:"소화기 압력게이지 바늘이 초록색을 가리킬 때의 의미는?", c:["압력 부족","정상","압력 과다","고장"], a:1, e:"압력게이지 바늘이 초록색이면 정상, 노란색이면 부족, 빨간색이면 압력이 지나치게 높은 것이다."},
+{q:"소화기 사용법의 순서로 올바른 것은?", c:["안전핀 뽑기 → 소화기 옮기기 → 호스 향하기 → 손잡이 쥐기","소화기 옮기기 → 안전핀 뽑기 → 바람(문) 등지고 호스 향하기 → 손잡이 쥐고 뿌리기","손잡이 쥐기 → 안전핀 뽑기 → 소화기 옮기기 → 호스 향하기","호스 향하기 → 안전핀 뽑기 → 소화기 옮기기 → 손잡이 쥐기"], a:1, e:"소화기를 불이 난 곳으로 옮기고 → 안전핀을 뽑고 → 바람(실외)이나 문(실내)을 등지고 호스를 향한 뒤 → 손잡이를 쥐고 빗자루로 쓸 듯이 뿌린다."},
+{q:"정상적으로 관리·보관한 분말소화기의 일반적인 교체 주기는?", c:["3년","5년","10년","20년"], a:2, e:"정상적으로 관리·보관했더라도 10년이 경과한 분말소화기는 교체해야 하며, 성능확인 검사를 받으면 1회에 한해 3년 연장할 수 있다."}
+  ]},
+  "3": { label: "3회", data: [
+{q:"화재나 비상시 대피할 방향을 알려주는 표시등으로, 정전 시에도 최소 20분 이상 작동하는 것은?", c:["유도등","발신기","스프링클러","감지기"], a:0, e:"유도등은 정전 등으로 전원이 끊어져도 자체 축전지에 의해 최소 20분 이상 작동한다."},
+{q:"통로 유도등은 바닥으로부터 몇 m 이하에 설치되는가?", c:["1m 이하","2m 이하","3m 이하","설치 위치 무관"], a:0, e:"통로 유도등은 낮게 엎드렸을 때도 통로가 잘 보이도록 바닥으로부터 1m 이하에 설치된다."},
+{q:"화재 확산을 막고 항상 닫힌 상태를 유지해야 하는 문은?", c:["현관문","방화문","창문","자동문"], a:1, e:"방화문은 화재 확산을 막는 역할을 하므로 항상 닫힌 상태를 유지해야 하며 주변에 물건을 두면 안 된다."},
+{q:"어린이집이나 유치원에서 주로 사용하는 피난기구로, 미끄럼틀처럼 생긴 것은?", c:["완강기","구조대","미끄럼대","피난사다리"], a:2, e:"미끄럼대는 건물의 창이나 베란다에 미끄럼틀처럼 설치되며 어린이집·유치원 등에서 많이 사용된다."},
+{q:"벨트를 가슴에 매면 자동으로 내려오는 피난기구로, 호텔방 등에 설치되는 것은?", c:["피난사다리","완강기","공기안전매트","구조대"], a:1, e:"완강기는 벨트를 가슴에 매면 체중에 의해 자동으로 내려오는 피난기구로, 호텔방 등에 설치된다."},
+{q:"공기안전매트를 사용할 때 지켜야 할 주의사항은?", c:["어린이 혼자 뛰어내려도 된다","반드시 소방대원의 지시에 따라 사용한다","아무 층에서나 자유롭게 사용한다","신발을 신고 뛰어내려야 한다"], a:1, e:"공기안전매트는 반드시 소방대원이나 구조대원의 지시에 따라 사용해야 하며, 어린이가 스스로 뛰어내리면 매우 위험하다."},
+{q:"최근 5년간 우리나라에서 1년에 발생하는 화재 건수는 약 얼마인가?", c:["약 4천 건","약 4만 건","약 40만 건","약 4백 건"], a:1, e:"최근 5년간 자료 기준으로 1년에 약 4만여 건의 화재가 발생한다."},
+{q:"하루 평균 몇 건의 화재가 발생하는가?", c:["약 10건","약 50건","약 109건","약 500건"], a:2, e:"1년에 약 4만여 건이 발생하므로 하루에 약 109건씩 발생하는 셈이다."},
+{q:"'불조심 강조의 달'로 정해진 달은?", c:["1월","5월","9월","11월"], a:3, e:"봄과 겨울에 화재가 많이 일어나기 때문에 겨울이 시작되기 전인 11월을 '불조심 강조의 달'로 정하고 있다."},
+{q:"'소방의 날'은 몇 월 며칠인가?", c:["11월 9일","1월 19일","9월 11일","12월 25일"], a:0, e:"매년 11월 9일은 화재신고 번호 119를 기념한 '소방의 날'이다."},
+{q:"최근 5년간 월별 화재 통계에서 화재가 가장 많이 발생한 달은?", c:["3월","6월","9월","12월"], a:0, e:"최근 5년간 월별 통계에서 3월(3,744건)이 가장 많고, 9월(2,572건)이 가장 적다."},
+{q:"지하철에서 화재가 발생했을 때, 출입문을 열기 위해 좌석 양옆 아래쪽에 있는 장치는?", c:["비상벨","비상콕","소화기","화재감지기"], a:1, e:"좌석 양 옆 아래쪽에 위치한 비상콕을 몸 쪽으로 당긴 후 출입문을 열고 밖으로 나갈 수 있다."},
+{q:"건물 붕괴 징조로 볼 수 없는 것은?", c:["바닥이 갈라지거나 함몰될 때","벽에서 갈라지는 소리가 날 때","동물들이 불안해할 때","날씨가 맑아질 때"], a:3, e:"건물 붕괴 징조는 바닥의 갈라짐·함몰, 벽·바닥의 갈라지는 소리, 동물들의 불안한 행동 등이다. 날씨와는 관계가 없다."},
+{q:"붕괴된 건물에 갇혔을 때 해야 할 행동으로 옳지 않은 것은?", c:["파이프나 벽을 두드려 위치를 알린다","큰 소리로 계속 고함을 지른다","마른 손수건으로 코와 입을 가린다","창문 없는 단단한 벽 옆으로 대피한다"], a:1, e:"무리한 행동이나 고함을 지르는 등 불필요하게 체력을 낭비하지 않아야 한다."},
+{q:"물놀이 전 준비운동과 함께, 식사 후 최소 얼마의 시간이 지난 후 물에 들어가야 하는가?", c:["5분","30분","2시간","6시간"], a:1, e:"밥을 먹은 뒤에는 최소 30분은 소화시킨 후 물놀이를 해야 한다."},
+{q:"수영하기에 알맞은 수온으로 제시된 것은?", c:["15~16℃","25~26℃","35~36℃","45~46℃"], a:1, e:"차가운 물에서의 수영은 저체온증을 일으킬 수 있으므로, 수영하기 알맞은 수온은 25~26℃이다."},
+{q:"'이안류'에 휩쓸렸을 때 벗어나는 방법으로 옳은 것은?", c:["흐름을 거슬러 해변으로 직진한다","좌우 45도 방향으로 헤엄쳐 나온다","물속으로 잠수해 버틴다","큰 소리로만 도움을 요청하고 가만히 있는다"], a:1, e:"이안류(거꾸로 파도)는 흐름에 대항하면 위험하며, 처음부터 좌우 45도 방향으로 헤엄쳐 빠져나오는 것이 안전하다."},
+{q:"그네를 탈 때 지켜야 할 안전수칙으로 옳은 것은?", c:["줄을 놓고 두 손을 흔든다","줄을 꼭 잡고 도중에 뛰어내리지 않는다","서서 그네를 탄다","여러 명이 한 번에 탄다"], a:1, e:"그네를 탈 때에는 반드시 줄을 꼭 잡고 도중에 뛰어내리면 안 된다."},
+{q:"백화점 에스컬레이터 이용 시 주의할 점으로 옳지 않은 것은?", c:["신발끈이 틈새에 끼지 않게 조심한다","손잡이 밖으로 머리를 내밀지 않는다","진행 방향을 거슬러 오르내려도 된다","진열대 모서리에 부딪히지 않게 조심한다"], a:2, e:"무빙워크나 에스컬레이터에서는 진행방향을 거슬러 오르내리면 안 된다."},
+{q:"산불이 주택가로 번질 때 해야 할 행동으로 옳지 않은 것은?", c:["집 주위에 물을 뿌린다","문과 창문을 닫는다","가스통이나 유류를 그대로 둔다","안전한 장소로 대피한다"], a:2, e:"불이 붙거나 폭발 위험이 높은 가스통, 유류, 낙엽 등은 미리 제거해야 한다."},
+{q:"땅속 거대한 암반이 갑자기 갈라지며 땅이 흔들리는 자연 현상은?", c:["지진","낙뢰","태풍","홍수"], a:0, e:"지진은 땅속의 거대한 암반이 갑자기 갈라지면서 그 충격으로 땅이 흔들리는 현상이다."},
+{q:"지진이 발생했을 때 운동장에 있다면 어떻게 해야 하는가?", c:["건물 벽에 바짝 붙는다","나무 위로 올라간다","운동장 가운데에 엎드린다","자동차 위로 올라간다"], a:2, e:"건물의 유리창이나 담이 무너질 수 있으므로 건물이나 나무 가까이 가지 말고 운동장 가운데에 엎드려야 한다."},
+{q:"낙뢰가 칠 때 야외에서 절대 하지 말아야 할 행동은?", c:["피뢰침이 있는 건물로 대피한다","나무 아래로 피한다","몸을 낮춘다","금속제품을 멀리한다"], a:1, e:"나무나 전신주 등 높은 사물 근처는 낙뢰를 맞기 쉬우므로 나무 아래로 피하면 안 된다."},
+{q:"태풍이 올 때 집에서 해야 할 행동으로 옳지 않은 것은?", c:["창문을 꼭 잠근다","유리창에 테이프를 붙인다","노약자와 어린이를 밖에 내보낸다","TV·라디오로 기상상황을 확인한다"], a:2, e:"노약자와 어린이는 태풍이 지나갈 때까지 집 밖으로 나가지 말아야 한다."},
+{q:"황사가 발생했을 때 외출 시 착용해야 할 것으로 옳지 않은 것은?", c:["마스크","보호 안경","소매가 짧은 옷","소매가 긴 옷"], a:2, e:"황사가 있을 때 외출하면 소매가 긴 옷을 입고 보호용 안경과 마스크를 착용해야 한다."}
+  ]},
+  "5": { label: "5회", data: [
+{q:"소방관이 하는 일이 아닌 것은?", c:["화재를 진압한다","119 구급활동을 한다","화재예방 교육을 한다","학생들의 성적을 매긴다"], a:3, e:"소방관은 소방시설 점검, 화재 진압, 119 구급활동, 화재예방 교육 등을 한다."},
+{q:"한국화재보험협회(KFPA)는 몇 년도에 설립되었는가?", c:["1963년","1973년","1997년","2003년"], a:1, e:"KFPA는 '화재로 인한 재해보상과 보험가입에 관한 법률'에 따라 1973년에 설립되었다."},
+{q:"한국화재보험협회(KFPA)가 무료 안전점검을 실시하는 대상 건물 기준으로 알맞은 것은?", c:["5층 이상 건물","11층 이상 건물","단독주택","모든 자동차"], a:1, e:"KFPA는 아파트, 학교, 병원, 백화점, 11층 이상의 건물 등 일정 규모 이상의 시설에 무료 안전점검을 실시한다."},
+{q:"손해보험회사에서 취급하는 보험이 아닌 것은?", c:["화재보험","자동차보험","해상보험","교육보험"], a:3, e:"화재보험·자동차보험·해상보험은 손해보험이고, 교육보험은 생명보험회사가 취급하는 보험이다."},
+{q:"화재보험에 가입해야 하는 이유로 옳은 것은?", c:["화재가 나면 절대 피해를 보지 않기 때문에","우리 집 화재가 옆집에 번졌을 때 피해를 물어줄 수 있어서","세금을 적게 내기 위해서","소방차를 빨리 부르기 위해서"], a:1, e:"실수로 우리 집에서 불이 나 옆집으로 번지면 그 피해를 물어줘야 하므로, 화재보험에 가입해 두어야 경제적 어려움을 줄일 수 있다."},
+{q:"옥내소화전은 일반적으로 연면적 몇 ㎡ 이상의 건물에 설치되는가?", c:["500㎡","1,000㎡","1,500㎡","5,000㎡"], a:2, e:"옥내소화전은 대부분 연면적 1,500㎡ 이상의 건물 내부와 지하층 등에 설치되어 있다."},
+{q:"스프링클러는 언제, 어느 나라에서 처음 개발되었는가?", c:["1850년경 영국","1950년경 미국","1900년경 프랑스","2000년경 한국"], a:0, e:"스프링클러는 1850년경 영국에서 처음 개발되어 고층건물, 공장, 지하철 등에 설치된다."},
+{q:"1999년 6월, 경기도 화성군에서 발생하여 어린이 19명 등 23명이 목숨을 잃은 화재 사고는?", c:["대구지하철 화재","씨랜드 청소년 수련원 화재","밀양 병원 화재","천안 초등학교 축구부 합숙소 화재"], a:1, e:"1999년 6월 30일 경기도 화성군 씨랜드 청소년 수련원 화재로 어린이 19명, 교사 4명 등 총 23명이 목숨을 잃었다."},
+{q:"2003년 2월 18일 대구지하철 중앙로역에서 발생한 화재의 원인은?", c:["전기합선","방화","가스누출","담뱃불"], a:1, e:"대구지하철 화재는 방화로 인해 발생했으며 192명 사망, 147명 부상이라는 큰 피해를 냈다."},
+{q:"2003년 3월, 충청남도 천안 초등학교 축구부 합숙소 화재의 원인은?", c:["방화","주방 냉장고의 전기합선","가스폭발","낙뢰"], a:1, e:"천안 초등학교 축구부 합숙소 화재는 주방 냉장고의 전기합선으로 발생해 학생 9명이 숨지고 16명이 다쳤다."},
+{q:"2018년 1월 26일 발생한 밀양 병원 화재의 원인으로 추정되는 것은?", c:["방화","전기합선","담뱃불","가스누출"], a:1, e:"밀양 병원 화재는 전기합선으로 추정되며 51명 사망, 141명 부상이라는 큰 피해를 냈다."},
+{q:"많은 사람이 이용하는 장소에서 화재경보가 울렸을 때 원칙으로 옳은 것은?", c:["먼저 화장실부터 간다","방송이나 관리자의 안내를 따른다","물건부터 챙긴다","큰 소리로 노래를 부른다"], a:1, e:"화재경보가 울리면 방송이나 건물관리자의 안내를 들으며 침착하게 행동해야 한다."},
+{q:"백화점이나 영화관에 들어갔을 때 가장 먼저 습관적으로 확인해야 할 것은?", c:["매점 위치","비상구·계단·화재발신기 위치","화장실 위치","주차장 위치"], a:1, e:"사람이 많이 이용하는 장소에 가면 습관적으로 비상구, 계단, 출입문, 화재발신기 위치부터 살펴봐야 한다."},
+{q:"옥내소화전 사용 순서로 옳은 것은?", c:["밸브 열기 → 호스 끌기 → 노즐 조준","호스를 불이 난 곳으로 끌기 → 호스 잡아주기 → 밸브 열기 → 노즐 조준","노즐 조준 → 밸브 열기 → 호스 끌기","순서는 상관없다"], a:1, e:"한 명이 호스와 노즐을 불이 난 곳으로 끌고 가면 다른 한 명이 호스를 잡아주고, 밸브를 열어 노즐을 불이 난 곳으로 향하게 한다."},
+{q:"학교 과학실험실에서 화학약품에 의해 화상을 입었을 때 해야 할 행동으로 옳지 않은 것은?", c:["흐르는 차가운 물로 씻어낸다","상처에 연고를 발라준다","옷은 벗기지 말고 가위로 잘라낸다","깨끗하고 마른 천으로 덮고 병원에 간다"], a:1, e:"상처에는 아무것도 바르지 말고 깨끗하고 마른 천으로 덮어 병원에서 치료를 받아야 한다."},
+{q:"학교에서 화재 대피훈련을 할 때 지켜야 할 행동으로 옳은 것은?", c:["각자 흩어져서 빨리 뛴다","교실 문 앞에 한 줄로 서서 질서 있게 대피한다","가방을 다 챙겨서 나간다","선생님보다 먼저 나간다"], a:1, e:"화재 대피훈련 시 교실 문 앞에 한 줄로 서서 선생님의 지시에 따라 질서 있게 대피해야 한다."},
+{q:"화재로 대피한 후 친구가 보이지 않을 때 해야 할 행동은?", c:["다시 교실로 들어가 찾는다","선생님이나 소방관에게 말씀드린다","혼자 찾으러 다닌다","그냥 신경 쓰지 않는다"], a:1, e:"대피한 후 친구가 보이지 않으면 선생님이나 소방관께 말씀드려야 하며, 절대 교실로 다시 들어가면 안 된다."},
+{q:"공연장이나 극장에서 안전수칙으로 옳지 않은 것은?", c:["질서를 지켜 입·퇴장한다","낮은 자세로 안내원을 따라 이동한다","폭죽이나 폭음탄을 사용한다","관람석이 아닌 곳에는 앉지 않는다"], a:2, e:"공연·행사장에서 폭죽, 폭음탄 등 화재 위험성이 있는 화기 위험물을 사용하면 안 된다."},
+{q:"산림 내 낙엽, 풀, 나무 등이 불타는 화재를 무엇이라 하는가?", c:["도시화재","산불","차량화재","공장화재"], a:1, e:"산불은 산림 내에서 낙엽, 풀, 나무 등이 불타는 화재를 말한다."},
+{q:"산불의 원인 중 가장 많은 비중을 차지하는 것은?", c:["낙뢰","논밭두렁 태우기 등 화기 취급 부주의","방화","자연발화"], a:1, e:"농사를 위해 논·밭두렁을 태우다 산림으로 불이 옮겨 붙는 경우가 산불의 가장 많은 원인이다."},
+{q:"산행 중 작은 산불을 발견했을 때 초기 진화 방법으로 옳은 것은?", c:["물로만 꺼야 한다","나뭇가지나 외투, 흙으로 두드려 끈다","그냥 지나간다","사진만 찍는다"], a:1, e:"작은 산불은 나뭇가지 등으로 두드리거나 외투, 흙으로 덮어서 초기에 진화할 수 있다."},
+{q:"산불을 예방하기 위해 하지 말아야 할 행동이 아닌 것은?", c:["통제구역 산행","산에서 흡연","지정된 곳에서 허가받은 취사","논밭두렁 태우기"], a:2, e:"허용된 지역에서 취사 및 야영을 하는 것은 규정에 맞는 행동이며, 나머지는 산불 예방을 위해 하지 말아야 할 행동이다."},
+{q:"화재 시 승강기(엘리베이터) 통로를 타고 위로 올라올 수 있어 위험한 것은?", c:["물","연기와 열기","사람","소리"], a:1, e:"승강기 통로를 타고 연기와 열기가 올라올 수 있으므로 화재 시 승강기를 절대 이용하면 안 된다."},
+{q:"완강기는 주로 어떤 장소에 설치되는가?", c:["학교 운동장","호텔·병원 등 고층건물","놀이터","지하철 승강장"], a:1, e:"완강기는 계단이나 승강기 이용이 곤란한 고층건물의 창문·베란다 등에 설치되며, 호텔·병원 등에 많이 설치된다."},
+{q:"'화재안전 map'을 그릴 때 표시하지 않아도 되는 것은?", c:["화재위험 장소","소화기·감지기 위치","대피 동선","우리 가족이 좋아하는 음식"], a:3, e:"화재안전 map에는 화재위험 장소, 소화기·감지기·스프링클러 위치, 대피 동선과 대피 후 모일 장소를 표시한다."}
+  ]}
+};
+
+let currentRoundKey = null;
+let DATA = [];
+let idx = 0, startTime = 0, finishTime = 0, timerInterval = null, answered = false, wrongList = [], isRetryRound = false, currentItem = null;
+const circ = ["①","②","③","④"];
+
+function shuffledItem(item) {
+  const order = [0, 1, 2, 3];
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return { q: item.q, c: order.map(oi => item.c[oi]), a: order.indexOf(item.a), e: item.e };
+}
+
+function showSelectScreen() {
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('select-screen').classList.remove('hidden');
+  const grid = document.getElementById('round-grid');
+  grid.innerHTML = '';
+  Object.keys(ROUNDS).forEach(key => {
+    const box = document.createElement('div');
+    box.className = 'round-box';
+    box.onclick = () => startGame(key);
+    box.innerHTML = `<div class="r-num">${ROUNDS[key].label}</div><div class="r-name">총 ${ROUNDS[key].data.length}문제</div>`;
+    grid.appendChild(box);
+  });
+}
+
+function startGame(key) {
+  currentRoundKey = key;
+  DATA = ROUNDS[key].data.slice();
+  idx = 0; wrongList = []; answered = false; isRetryRound = false; finishTime = 0;
+  document.getElementById('select-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  document.getElementById('round-pill').textContent = ROUNDS[key].label;
+  document.getElementById('q-total').textContent = DATA.length;
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+  showQuestion();
+}
+function restartRound() {
+  startGame(currentRoundKey);
+}
+function backToSelect() {
+  clearInterval(timerInterval);
+  showSelectScreen();
+}
+function updateTimer() {
+  const sec = Math.floor((Date.now() - startTime) / 1000);
+  const m = String(Math.floor(sec / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+  document.getElementById('timer').textContent = `${m}:${s}`;
+}
+function showQuestion() {
+  answered = false;
+  currentItem = shuffledItem(DATA[idx]);
+  const item = currentItem;
+  document.getElementById('q-index').textContent = idx + 1;
+  document.getElementById('question-box').textContent = item.q;
+  const grid = document.getElementById('choices-grid');
+  grid.innerHTML = '';
+  item.c.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = `${circ[i]} ${c}`;
+    btn.onclick = () => selectChoice(i);
+    grid.appendChild(btn);
+  });
+  document.getElementById('explain-box').classList.add('hidden');
+}
+function selectChoice(i) {
+  if (answered) return;
+  answered = true;
+  const item = currentItem;
+  const buttons = document.querySelectorAll('.choice-btn');
+  buttons.forEach((b, bi) => {
+    b.disabled = true;
+    if (bi === item.a) b.classList.add('correct');
+    else if (bi === i) b.classList.add('wrong');
+  });
+  if (i !== item.a) {
+    wrongList.push({ q: item.q, c: item.c, a: item.a, e: item.e, mine: i });
+  }
+  if (idx === DATA.length - 1) {
+    finishTime = Date.now();
+    clearInterval(timerInterval);
+    updateTimer();
+  }
+  document.getElementById('explain-answer').textContent = `정답: ${circ[item.a]} ${item.c[item.a]}`;
+  document.getElementById('explain-text').textContent = item.e;
+  document.getElementById('explain-box').classList.remove('hidden');
+  document.getElementById('next-btn').textContent = (idx === DATA.length - 1) ? '결과보기' : '다음 문제';
+}
+function nextQuestion() {
+  idx++;
+  if (idx >= DATA.length) { endGame(); return; }
+  showQuestion();
+}
+function endGame() {
+  clearInterval(timerInterval);
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.remove('hidden');
+  document.getElementById('result-title').textContent = `${ROUNDS[currentRoundKey].label} 퀴즈 완료!`;
+  const totalSec = Math.floor((finishTime - startTime) / 1000);
+  const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+  const s = String(totalSec % 60).padStart(2, '0');
+  document.getElementById('result-time').textContent = `${m}:${s}`;
+  const now = new Date();
+  document.getElementById('result-finish').textContent = now.toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+  const wrongWrap = document.getElementById('wrong-wrap');
+  if (wrongList.length > 0) {
+    wrongWrap.classList.remove('hidden');
+    document.getElementById('wrong-count').textContent = wrongList.length;
+    const listEl = document.getElementById('wrong-list');
+    listEl.innerHTML = '';
+    wrongList.forEach((w, i) => {
+      const div = document.createElement('div');
+      div.className = 'wrong-item';
+      div.innerHTML = `<div class="wq">${i + 1}. ${w.q}</div>
+        <div>내가 고른 답: <span class="wmine">${circ[w.mine]} ${w.c[w.mine]}</span></div>
+        <div>정답: <span class="wcorrect">${circ[w.a]} ${w.c[w.a]}</span> — ${w.e}</div>`;
+      listEl.appendChild(div);
+    });
+    document.getElementById('retry-wrong-btn').textContent = isRetryRound
+      ? `이번에 틀린 ${wrongList.length}개 또 다시 풀기`
+      : `틀린 문제만 다시 풀기 (${wrongList.length}개)`;
+  } else {
+    wrongWrap.classList.add('hidden');
+  }
+}
+function retryWrong() {
+  DATA = wrongList.map(w => ({ q: w.q, c: w.c, a: w.a, e: w.e }));
+  idx = 0; wrongList = []; answered = false; isRetryRound = true; finishTime = 0;
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  document.getElementById('q-total').textContent = DATA.length;
+  // startTime은 그대로 유지 — 타이머를 리셋하지 않고 처음부터 누적해서 계속 잰다.
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 1000);
+  showQuestion();
+}
+</script>
+</body>
+</html>
